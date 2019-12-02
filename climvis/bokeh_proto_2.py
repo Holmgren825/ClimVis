@@ -1,4 +1,5 @@
 import pandas as pd
+from scipy.stats import linregress
 import climvis
 from tornado.ioloop import IOLoop
 from bokeh.application.handlers import FunctionHandler
@@ -6,6 +7,7 @@ from bokeh.application import Application
 from bokeh.server.server import Server
 from bokeh.models import ColumnDataSource
 from bokeh.models.widgets import Select, Div
+from bokeh.models.widgets.buttons import Button
 from bokeh.models.widgets.inputs import AutocompleteInput
 from bokeh.layouts import column, row
 from bokeh.plotting import figure
@@ -88,7 +90,7 @@ def get_data(city, variable, method):
 
     Returns
     -------
-    The requested data as a ColumnDataSource.
+    The requested data as a pandas dataframe.
     """
     # Fetch the latitude and longitude of the specified city.
     lat, lon = get_lat_lon(city)
@@ -96,10 +98,22 @@ def get_data(city, variable, method):
     df = climvis.core.get_cru_timeseries(lon, lat)
     # Resample the CRU data based on requested method.
     data = resample_data(df, method, variable, lat)
+    return(data)
+
+
+def get_trend(data, variable):
+    """Creates a new column in dataframe with values calculated from a linear
+    regression for each year.
+    """
+    # Get the coefficients of a linear regression.
+    coeffs = linregress(data.index.year, data[variable_dict[variable]])
+    # Create a new column with values based on linear regression.
+    data['trend'] = data.index.year*coeffs[0] + coeffs[1]
+    # Return the new dataframe as ColumnDataSource.
     return(ColumnDataSource(data=data))
 
 
-def create_plot(source_1, source_2, title, variable):
+def create_plot(source_1, source_2, title, variable, trend):
     """Create a bokeh line plot from two data sources.
 
     Parameters
@@ -118,12 +132,30 @@ def create_plot(source_1, source_2, title, variable):
                 'Temperature': 'Temperature [°C]'}
     plot = figure(x_axis_type="datetime", plot_width=1000)
     plot.title.text = title
-    # Plot the the selected variable. Maybe this should be done in get_data
-    # instead?
-    plot.line('time', variable_dict[variable], source=source_1,
-              legend_label=city_1, line_width=1.5)
-    plot.line('time', variable_dict[variable], source=source_2,
-              color='forestgreen', legend_label=city_2, line_width=1.5)
+    if trend:
+        source_1 = get_trend(source_1, variable)
+        source_2 = get_trend(source_2, variable)
+        # Plot the variables.
+        plot.line('time', variable_dict[variable], source=source_1,
+                  legend_label=city_1, line_width=1.5)
+        plot.line('time', variable_dict[variable], source=source_2,
+                  color='forestgreen', legend_label=city_2, line_width=1.5)
+        # Plot the trend lines.
+        plot.line('time', 'trend', source=source_1,
+                  line_width=1.5, line_color='gray', line_dash='dashed')
+        plot.line('time', 'trend', source=source_2,
+                  line_width=1.5, line_color='gray', line_dash='dashed')
+    elif not trend:
+        # Convert data sources into columnDataFrames
+        source_1 = ColumnDataSource(data=source_1)
+        source_2 = ColumnDataSource(data=source_2)
+        # Plot the the selected variable. Maybe this should be done in get_data
+        # instead?
+        plot.line('time', variable_dict[variable], source=source_1,
+                  legend_label=city_1, line_width=1.5)
+        plot.line('time', variable_dict[variable], source=source_2,
+                  color='forestgreen', legend_label=city_2, line_width=1.5)
+
     plot.yaxis.axis_label = y_labels[variable]
     plot.legend.location = 'top_left'
     # Not implemented in line plots yet.
@@ -136,6 +168,7 @@ city_1 = 'Innsbruck'
 city_2 = 'Goteborg'
 variable = 'Temperature'
 method = 'Yearly'
+trend = False
 # Read all city names in word_cities and create list based on these.
 cities = pd.read_csv(climvis.cfg.world_cities, usecols=['Name'])
 # Have to drop the NaN values for bokeh widget to accept the list.
@@ -143,10 +176,14 @@ cities_list = cities['Name'].dropna().tolist()
 
 variable_dict = {'Temperature': 'tmp', 'Precipitation': 'pre'}
 methods_list = ['Yearly', 'Summer', 'Winter']
+source_1 = get_data(city_1, variable, method)
+source_2 = get_data(city_2, variable, method)
+title = (method + ' ' + variable.lower() + ' in ' + city_1 + ' and '
+         + city_2 + '.')
 
 
 def modify_doc(doc):
-    """Create and modify the bokeh document. Later ran by the tornado
+    """Create and modify the bokeh document. Later run by the tornado
     server."""
     city_1_title = 'Search for the first city'
     city_2_title = 'Search for the second city'
@@ -158,18 +195,34 @@ def modify_doc(doc):
     variable_select = Select(value=variable, title='Variable',
                              options=list(variable_dict.keys()))
     method_select = Select(value=method, title='Period', options=methods_list)
-    # Initialize the app with some data.
-    source_1 = get_data(city_1, variable, method)
-    source_2 = get_data(city_2, variable, method)
-    title = (method + ' ' + variable.lower() + ' in ' + city_1 + ' and '
-             + city_2 + '.')
-    plot = create_plot(source_1, source_2, title, variable)
+    # And a button to toggle display of trend.
+    display_trend = Button(
+        label='Display trends',
+        button_type='success',
+        width=50
+    )
+
+    # Initial plot for startup of app.
+    plot = create_plot(source_1, source_2, title, variable, trend)
+
+    def trend_update():
+        """Custom callback in the event of button changing state."""
+        # Make use of global variables.
+        global trend, source_1, source_2, title, variable
+        # Switch state of trend(bool)
+        trend = not trend
+        if trend:
+            display_trend.label = 'Hide trends'
+        else:
+            display_trend.label = 'Show trends'
+        layout.children[1] = create_plot(source_1, source_2, title, variable,
+                                         trend)
 
     def update_plot(attrname, old, new):
         """This is called when any of the widgets are changed, updates the
         plot"""
         # Need to access the value of the global variables.
-        global city_1, city_2
+        global city_1, city_2, source_1, source_2, title, variable, method
         # Get the new value of cities and variable.
         city_1 = city_1_select.value
         city_2 = city_2_select.value
@@ -179,31 +232,37 @@ def modify_doc(doc):
         title = (method + ' ' + variable.lower() + ' data in ' + city_1 +
                  ' and ' + city_2 + '.')
         # Get new source data based on the new parameters.
-        src_1 = get_data(city_1, variable, method)
-        src_2 = get_data(city_2, variable, method)
+        source_1 = get_data(city_1, variable, method)
+        source_2 = get_data(city_2, variable, method)
         # This is what is actually updating the plot, the plot is the second
         # child of the layout.
-        layout.children[1] = create_plot(src_1, src_2, title, variable)
+        layout.children[1] = create_plot(source_1, source_2, title, variable,
+                                         trend)
 
     # Looping through all the selectors to detect changes.
-    for w in [city_1_select, city_2_select, variable_select, method_select]:
+    control_list = [city_1_select, city_2_select, variable_select,
+                    method_select]
+    for w in control_list:
         w.on_change('value', update_plot)
-
+    # Need to treat button differently.
+    display_trend.on_click(trend_update)
+    # Title displayed on page.
     text = ('<font size="5">Welcome to the ClimTrend visualization tool.'
             ' Compare the climate in two cities by using the controls'
             ' below.</font>')
     p = Div(text=text, width=300, height=200)
     controls = column(p, city_1_select, city_2_select, variable_select,
-                      method_select)
+                      method_select, display_trend)
     # Add the controls of the app and the plot to the first row of the layout.
     layout = row(controls, plot)
     doc.add_root(layout)
-    doc.title = 'Test'
+    doc.title = 'ClimTrend'
 
 
-def launch_app(browser):
+def launch_app():
     """This is where the server is launched, and we connect to the server.
-    Recipe from the bokeh reference pages."""
+    Recipe from the bokeh reference pages.
+    """
     io_loop = IOLoop.current()
     bokeh_app = Application(FunctionHandler(modify_doc))
     server = Server({"/": bokeh_app}, io_loop=io_loop)

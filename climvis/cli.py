@@ -66,7 +66,7 @@ Usage:
 
 
 def climTrend_io(args):
-    if len(args) != 0:
+    if len(args) > 0:
         if args[0] in ['-h', '--help']:
             print(climTrendHelp)
         elif len(args) > 1:
