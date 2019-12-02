@@ -53,6 +53,7 @@ req_packages = ['numpy',
                 'xarray',
                 'matplotlib',
                 'netCDF4',
+                'bokeh'
                 ]
 
 check_dependencies(req_packages)

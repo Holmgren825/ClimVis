@@ -14,6 +14,7 @@ Make sure you have all dependencies installed. These are:
 - xarray
 - motionless
 - matplotlib
+- bokeh
 
 Download the package and install it development mode. From the root directory,
 do:
