@@ -28,13 +28,16 @@ If you are on a university computer, you should use:
 ## Command line interface
 
 ``setup.py`` defines an "entry point" for a script to be used as a
-command line program. Currently, the only command installed is ``cruvis``.
+command line program. Currently, two commands are installed: ``cruvis`` and ``climTrend´´.
 
 After installation, just type:
 
     $ cruvis --help
+    
+or
+    $ climTrend --help
 
-To see what it can do for you.
+To see what they can do for you.
 
 ## Testing
 
