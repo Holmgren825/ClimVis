@@ -15,6 +15,7 @@ Make sure you have all dependencies installed. These are:
 - motionless
 - matplotlib
 - bokeh
+- scipy
 
 Download the package and install it development mode. From the root directory,
 do:
