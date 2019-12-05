@@ -26,7 +26,8 @@ def get_lat_lon(city):
     -------
     Latitude and longitude of the city.
     """
-    df = pd.read_csv(climvis.cfg.world_cities)
+    df = pd.read_csv(climvis.cfg.world_cities).dropna()
+    df = df.drop_duplicates(subset='Name')
     # Find lat and lon of city in dataframe.
     lat = df.loc[df.Name == city].Lat.values[0]
     lon = df.loc[df.Name == city].Lon.values[0]
@@ -168,7 +169,7 @@ def create_plot(source_1, source_2, title, variable, trend):
     return(plot)
 
 
-# Initialization
+# Initialization variables.
 city_1 = 'Innsbruck'
 city_2 = 'Goteborg'
 variable = 'Temperature'
@@ -176,8 +177,9 @@ method = 'Yearly'
 trend = False
 # Read all city names in word_cities and create list based on these.
 cities = pd.read_csv(climvis.cfg.world_cities, usecols=['Name'])
-# Have to drop the NaN values for bokeh widget to accept the list.
-cities_list = cities['Name'].dropna().tolist()
+# Have to drop the NaN values for bokeh widget to accept the list. Also remove
+# all duplicates. No need for them.
+cities_list = cities['Name'].dropna().drop_duplicates().tolist()
 
 variable_dict = {'Temperature': 'tmp', 'Precipitation': 'pre'}
 methods_list = ['Yearly', 'Summer', 'Winter']
@@ -268,11 +270,12 @@ def launch_app():
     """This is where the server is launched, and we connect to the server.
     Recipe from the bokeh reference pages.
     """
+    print('Opening climTrend on server...')
     io_loop = IOLoop.current()
     bokeh_app = Application(FunctionHandler(modify_doc))
     server = Server({"/": bokeh_app}, io_loop=io_loop)
     server.start()
-    print('Opening ClimTrend on http://localhost:5006/')
+    print('Running climTrend on http://localhost:5006/')
 
     # This equivalent to running bokeh serve --show from the command line. Kind
     # of. Not good for deployment.

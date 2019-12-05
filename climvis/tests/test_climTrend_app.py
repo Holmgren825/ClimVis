@@ -37,6 +37,12 @@ def test_resample_data():
     df_resample_summer = climTrend_app.resample_data(df, method, variable, lat)
     df_corr_summer = df['2017-04':].resample('6M', closed='left').mean()[0::2]
     pdt.assert_frame_equal(df_resample_summer, df_corr_summer)
+    # Case using winter period.
+    method = 'Winter'
+    variable = 'Temperature'
+    df_resample_winter = climTrend_app.resample_data(df, method, variable, lat)
+    df_corr_winter = df['2017-04':].resample('6M', closed='left').mean()[1::2]
+    pdt.assert_frame_equal(df_resample_winter, df_corr_winter)
 
 
 def test_get_data():
