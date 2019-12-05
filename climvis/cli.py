@@ -1,7 +1,7 @@
 import webbrowser
 import sys
 import climvis
-from climvis import bokeh_proto_2
+from climvis import climTrend_app
 
 HELP = """cruvis: CRU data visualization at a selected location.
 
@@ -72,7 +72,7 @@ def climTrend_io(args):
         elif len(args) > 1:
             print(climTrendHelp)
     else:
-        bokeh_proto_2.launch_app()
+        climTrend_app.launch_app()
 
 
 def climTrend():

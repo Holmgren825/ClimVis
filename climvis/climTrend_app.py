@@ -52,27 +52,29 @@ def resample_data(df, method, variable, lat):
     -------
     The resampled dataframe.
     """
+    # Find first year of dataframe.
+    first_year = str(df.index.year[0])
     # Specifying the month when seasons change.
-    start_month = '04'
-    # Southern hemisphere winter/summer has to be reversed. Maybe there is an
+    start_month = '-04'
+    # Southern hemisphere winter/summer has to be reversed. Maybe there is a
     # prettier way?
     if lat < 0 and method == 'Summer':
         method = 'Winter'
     elif lat < 0 and method == 'Winter':
         method = 'Summer'
     # Dict of the different resampling methods.
-    methods = {'Yearly': ['12M', '01', 0, 1],
+    methods = {'Yearly': ['12M', '-01', 0, 1],
                'Summer': ['6M', start_month, 0, 2],
                'Winter': ['6M', start_month, 1, 2]}
     use_method = methods[method]
     # For precipitation monthly means should be summed.
     if variable == 'Precipitation':
-        data = df['1901-'+use_method[1]:].resample(use_method[0],
-                                                   closed='left').sum()
+        data = df[first_year+use_method[1]:].resample(use_method[0],
+                                                      closed='left').sum()
     # For temperature an average should be calculated for the monthly means.
     else:
-        data = df['1901-'+use_method[1]:].resample(use_method[0],
-                                                   closed='left').mean()
+        data = df[first_year+use_method[1]:].resample(use_method[0],
+                                                      closed='left').mean()
     return(data[use_method[2]::use_method[3]])
 
 
@@ -110,7 +112,7 @@ def get_trend(data, variable):
     # Create a new column with values based on linear regression.
     data['trend'] = data.index.year*coeffs[0] + coeffs[1]
     # Return the new dataframe as ColumnDataSource.
-    return(ColumnDataSource(data=data))
+    return(data)
 
 
 def create_plot(source_1, source_2, title, variable, trend):
@@ -135,6 +137,9 @@ def create_plot(source_1, source_2, title, variable, trend):
     if trend:
         source_1 = get_trend(source_1, variable)
         source_2 = get_trend(source_2, variable)
+        # Converting to CDS.
+        source_1 = ColumnDataSource(data=source_1)
+        source_2 = ColumnDataSource(data=source_2)
         # Plot the variables.
         plot.line('time', variable_dict[variable], source=source_1,
                   legend_label=city_1, line_width=1.5)
