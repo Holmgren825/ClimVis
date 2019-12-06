@@ -56,8 +56,9 @@ def cruvis():
     cruvis_io(sys.argv[1:])
 
 
-climTrendHelp = '''climTrend: bokeh app to compare the climate in two cities.
-Run command without any arguments to launch the app.
+climTrendHelp = '''climTrend: A bokeh app which allows the user to compare the
+temperature and precipitation in two cities.
+Run command without any arguments to launch the app on a local server.
 
 Usage:
     -h, --help:     print the help.
@@ -66,6 +67,13 @@ Usage:
 
 
 def climTrend_io(args):
+    """What is actually running the command.
+
+    Parameters
+    ----------
+    args: list
+        Output of sys.argv[1:]
+    """
     if len(args) > 0:
         if args[0] in ['-h', '--help']:
             print(climTrendHelp)

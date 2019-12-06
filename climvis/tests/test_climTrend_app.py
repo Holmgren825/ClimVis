@@ -1,3 +1,7 @@
+"""Tests for climTrend.
+
+Author: Erik Holmgren
+"""
 from climvis import climTrend_app
 import numpy as np
 import pandas as pd
@@ -35,6 +39,7 @@ def test_resample_data():
     method = 'Summer'
     variable = 'Temperature'
     df_resample_summer = climTrend_app.resample_data(df, method, variable, lat)
+    # Maybe this is a bit too lazy.
     df_corr_summer = df['2017-04':].resample('6M', closed='left').mean()[0::2]
     pdt.assert_frame_equal(df_resample_summer, df_corr_summer)
     # Case using winter period.
@@ -51,7 +56,7 @@ def test_get_data():
     method = 'Summer'
     data = climTrend_app.get_data(city, variable, method)
 
-    # This function is only a collection of other function, hence only testing
+    # This function is only a collection of other functions, hence only testing
     # if it actually returns a dataframe.
     assert type(data) is pd.core.frame.DataFrame
 

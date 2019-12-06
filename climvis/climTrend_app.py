@@ -1,3 +1,8 @@
+"""Script that creates and runs a bokeh application on a local server. Enables
+the user to compare the temperature and precipitation from two "world cities".
+
+Author: Erik Holmgren
+"""
 import pandas as pd
 from scipy.stats import linregress
 import climvis
@@ -17,7 +22,7 @@ def get_lat_lon(city):
     """Return the latitude and longitude of a city available in the
     world_cities csv file.
 
-    Paramters
+    Parameters
     ---------
     city : String
         Name of the city.
@@ -26,6 +31,7 @@ def get_lat_lon(city):
     -------
     Latitude and longitude of the city.
     """
+    # Remove NaNs and duplicates.
     df = pd.read_csv(climvis.cfg.world_cities).dropna()
     df = df.drop_duplicates(subset='Name')
     # Find lat and lon of city in dataframe.
@@ -185,7 +191,7 @@ variable_dict = {'Temperature': 'tmp', 'Precipitation': 'pre'}
 methods_list = ['Yearly', 'Summer', 'Winter']
 source_1 = get_data(city_1, variable, method)
 source_2 = get_data(city_2, variable, method)
-title = (method + ' ' + variable.lower() + ' in ' + city_1 + ' and '
+title = (method + ' ' + variable.lower() + ' data from ' + city_1 + ' and '
          + city_2 + '.')
 
 
@@ -236,7 +242,7 @@ def modify_doc(doc):
         variable = variable_select.value
         method = method_select.value
         # Set new title of plot based on new variables.
-        title = (method + ' ' + variable.lower() + ' data in ' + city_1 +
+        title = (method + ' ' + variable.lower() + ' data from ' + city_1 +
                  ' and ' + city_2 + '.')
         # Get new source data based on the new parameters.
         source_1 = get_data(city_1, variable, method)
