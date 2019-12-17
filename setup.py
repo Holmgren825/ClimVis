@@ -206,7 +206,7 @@ setup(
     entry_points={  # Optional
         'console_scripts': [
             'cruvis=climvis.cli:cruvis',
-            'climTrend=climvis.cli:climTrend'
+            'climtrend=climvis.cli:climtrend_cli'
         ],
     },
 

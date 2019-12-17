@@ -1,7 +1,7 @@
 import webbrowser
 import sys
 import climvis
-from climvis import climTrend_app
+from climvis import climtrend
 
 HELP = """cruvis: CRU data visualization at a selected location.
 
@@ -56,7 +56,7 @@ def cruvis():
     cruvis_io(sys.argv[1:])
 
 
-climTrendHelp = '''climTrend: A bokeh app which allows the user to compare the
+climtrendHelp = '''climTrend: A bokeh app which allows the user to compare the
 temperature and precipitation in two cities.
 Run command without any arguments to launch the app on a local server.
 
@@ -66,7 +66,7 @@ Usage:
 '''
 
 
-def climTrend_io(args):
+def climtrend_io(args):
     """What is actually running the command.
 
     Parameters
@@ -76,13 +76,13 @@ def climTrend_io(args):
     """
     if len(args) > 0:
         if args[0] in ['-h', '--help']:
-            print(climTrendHelp)
+            print(climtrendHelp)
         elif len(args) > 1:
-            print(climTrendHelp)
+            print(climtrendHelp)
     else:
-        climTrend_app.launch_app()
+        climtrend.launch_app()
 
 
-def climTrend():
-    """Entry point for the climTrend bokeh app"""
-    climTrend_io(sys.argv[1:])
+def climtrend_cli():
+    """Entry point for the climtrend bokeh app"""
+    climtrend_io(sys.argv[1:])

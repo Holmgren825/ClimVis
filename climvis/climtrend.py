@@ -260,7 +260,7 @@ def modify_doc(doc):
     # Need to treat button differently.
     display_trend.on_click(trend_update)
     # Title displayed on page.
-    text = ('<font size="5">Welcome to the ClimTrend visualization tool.'
+    text = ('<font size="5">Welcome to the climtrend visualization tool.'
             ' Compare the climate in two cities by using the controls'
             ' below.</font>')
     p = Div(text=text, width=300, height=200)
@@ -276,12 +276,13 @@ def launch_app():
     """This is where the server is launched, and we connect to the server.
     Recipe from the bokeh reference pages.
     """
-    print('Opening climTrend on server...')
+    print('Opening climtrend on server...')
     io_loop = IOLoop.current()
     bokeh_app = Application(FunctionHandler(modify_doc))
     server = Server({"/": bokeh_app}, io_loop=io_loop)
     server.start()
-    print('Running climTrend on http://localhost:5006/')
+    print('Running climtrend on http://localhost:5006/. ' +
+          'Press Ctrl + c to exit.')
 
     # This equivalent to running bokeh serve --show from the command line. Kind
     # of. Not good for deployment.

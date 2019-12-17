@@ -37,7 +37,7 @@ After installation, just type:
     
 or
 
-    $ climTrend --help
+    $ climtrend --help
 
 To see what they can do for you.
 
