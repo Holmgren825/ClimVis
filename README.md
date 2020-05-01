@@ -26,7 +26,7 @@ If you are on a university computer, you should use:
 
     $ pip install --user -e .
 
-### Usage example
+### Usage example of the climtrend app
 ![alt text](./climtrend_usage.gif)
 
 ## Command line interface
