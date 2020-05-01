@@ -26,6 +26,9 @@ If you are on a university computer, you should use:
 
     $ pip install --user -e .
 
+### Usage example
+![alt text](./climtrend_usage.gif)
+
 ## Command line interface
 
 ``setup.py`` defines an "entry point" for a script to be used as a
